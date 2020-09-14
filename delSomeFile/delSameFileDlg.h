@@ -51,6 +51,9 @@ private:
 	std::thread t_delThread;
 	CString m_edit_path;
 	CListBox m_list_msg;
+	POINT old;
+	CRect m_rect;
 public:
 	virtual BOOL DestroyWindow();
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 };

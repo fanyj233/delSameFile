@@ -35,6 +35,8 @@ public:
 // 实现
 protected:
 	DECLARE_MESSAGE_MAP()
+public:
+//	afx_msg void OnSize(UINT nType, int cx, int cy);
 };
 
 CAboutDlg::CAboutDlg() : CDialogEx(IDD_ABOUTBOX)
@@ -47,6 +49,7 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -76,6 +79,7 @@ BEGIN_MESSAGE_MAP(CdelSameFileDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON2, &CdelSameFileDlg::OnBnClickedButton2)
 	ON_BN_CLICKED(IDC_BUTTON3, &CdelSameFileDlg::OnBnClickedButton3)
 	ON_BN_CLICKED(IDC_CHECK1, &CdelSameFileDlg::OnBnClickedCheck1)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 
@@ -112,7 +116,10 @@ BOOL CdelSameFileDlg::OnInitDialog()
 
 	// TODO: 在此添加额外的初始化代码
 	enableControl(true);
-
+	// 获取对话框初始大小    
+	GetClientRect(&m_rect);  //获取对话框的大小
+	old.x = m_rect.right - m_rect.left;
+	old.y = m_rect.bottom - m_rect.top;
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
 
@@ -357,4 +364,53 @@ BOOL CdelSameFileDlg::DestroyWindow()
 	if (t_delThread.joinable())
 		t_delThread.join();
 	return CDialogEx::DestroyWindow();
+}
+
+
+//void CAboutDlg::OnSize(UINT nType, int cx, int cy)
+//{
+//	CDialogEx::OnSize(nType, cx, cy);
+//
+//	// TODO: 在此处添加消息处理程序代码
+//	{
+//
+//	}
+//}
+
+
+void CdelSameFileDlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	// TODO: 在此处添加消息处理程序代码
+	{
+		float fsp[2];
+		POINT Newp; //获取现在对话框的大小  
+		CRect recta;
+		GetClientRect(&recta);     //取客户区大小    
+		Newp.x = recta.right - recta.left;
+		Newp.y = recta.bottom - recta.top;
+		fsp[0] = (float)Newp.x / old.x;
+		fsp[1] = (float)Newp.y / old.y;
+		CRect Rect;
+		int woc;
+		CPoint OldTLPoint, TLPoint; //左上角  
+		CPoint OldBRPoint, BRPoint; //右下角  
+		HWND  hwndChild = ::GetWindow(m_hWnd, GW_CHILD);  //列出所有控件    
+		while (hwndChild) {
+			woc = ::GetDlgCtrlID(hwndChild);//取得ID  
+			GetDlgItem(woc)->GetWindowRect(Rect);
+			ScreenToClient(Rect);
+			OldTLPoint = Rect.TopLeft();
+			TLPoint.x = long(OldTLPoint.x * fsp[0]);
+			TLPoint.y = long(OldTLPoint.y * fsp[1]);
+			OldBRPoint = Rect.BottomRight();
+			BRPoint.x = long(OldBRPoint.x * fsp[0]);
+			BRPoint.y = long(OldBRPoint.y * fsp[1]);
+			Rect.SetRect(TLPoint, BRPoint);
+			GetDlgItem(woc)->MoveWindow(Rect, TRUE);
+			hwndChild = ::GetWindow(hwndChild, GW_HWNDNEXT);
+		}
+		old = Newp;
+	}
 }
